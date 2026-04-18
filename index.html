@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS File Share</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; }
+        .card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        input, button { width: 100%; padding: 10px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>JSファイル共有</h2>
+        <input type="text" id="url" placeholder="RenderのURL">
+        <input type="password" id="pw" placeholder="パスワード">
+        <hr>
+        <input type="file" id="file">
+        <button onclick="upload()">アップロード</button>
+        <hr>
+        <button onclick="load()" style="background:#ddd;">一覧更新</button>
+        <div id="list"></div>
+    </div>
+
+    <script>
+        async function upload() {
+            const url = document.getElementById('url').value.replace(/\/$/, "");
+            const pw = document.getElementById('pw').value;
+            const file = document.getElementById('file').files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await fetch(`${url}/upload`, {
+                method: 'POST',
+                headers: { 'x-password': pw },
+                body: formData
+            });
+            if (res.ok) { alert('成功'); load(); } else { alert('失敗'); }
+        }
+
+        async function load() {
+            const url = document.getElementById('url').value.replace(/\/$/, "");
+            const pw = document.getElementById('pw').value;
+            const res = await fetch(`${url}/files?pw=${pw}`);
+            const files = await res.json();
+            const list = document.getElementById('list');
+            list.innerHTML = files.map(f => `
+                <div style="margin:10px 0;">
+                    ${f} <a href="${url}/download/${f}?pw=${pw}" target="_blank">保存</a>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
